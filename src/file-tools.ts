@@ -5,11 +5,12 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { AxiosInstance } from 'axios';
 import { GetFileReportArgsSchema, GetFileRelationshipArgsSchema } from './schemas/index.js';
 import { handleGetFileReport, handleGetFileRelationship } from './handlers/file.js';
+import { checkTokenLimit } from './utils/token-limiter.js';
 
 /**
  * Register all file analysis tools on the MCP server.
  */
-export async function registerFileTools(server: McpServer, client: AxiosInstance): Promise<void> {
+export async function registerFileTools(server: McpServer, client: AxiosInstance, maxTokenCall = 20000): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const registerTool = (server as any).tool.bind(server) as (
     name: string,
@@ -25,7 +26,16 @@ export async function registerFileTools(server: McpServer, client: AxiosInstance
       '(behaviors, dropped files, network connections, embedded content, threat actors). ' +
       'Returns both the basic analysis and automatically fetched relationship data.',
     GetFileReportArgsSchema.shape,
-    (args: unknown) => handleGetFileReport(client, args)
+    async (args: unknown) => {
+      const parsed = GetFileReportArgsSchema.safeParse(args);
+      const breakTokenRule = parsed.success ? (parsed.data.break_token_rule ?? false) : false;
+      const result = await handleGetFileReport(client, args);
+      const tokenCheck = checkTokenLimit(result, maxTokenCall, breakTokenRule);
+      if (!tokenCheck.allowed) {
+        return { content: [{ type: 'text', text: tokenCheck.error ?? 'Token limit exceeded' }], isError: true };
+      }
+      return result;
+    }
   );
 
   registerTool(

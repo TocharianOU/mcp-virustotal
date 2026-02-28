@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 export const GetUrlReportArgsSchema = z.object({
   url: z.string().url('Must be a valid URL').describe('The URL to analyze'),
+  break_token_rule: z.boolean().optional().default(false).describe('Set to true to bypass token limits in critical situations. Use sparingly to avoid context overflow.'),
 });
 
 export const GetUrlRelationshipArgsSchema = z.object({
@@ -43,6 +44,7 @@ export const GetFileReportArgsSchema = z.object({
     .string()
     .regex(/^[a-fA-F0-9]{32,64}$/, 'Must be a valid MD5, SHA-1, or SHA-256 hash')
     .describe('MD5, SHA-1 or SHA-256 hash of the file'),
+  break_token_rule: z.boolean().optional().default(false).describe('Set to true to bypass token limits in critical situations. Use sparingly to avoid context overflow.'),
 });
 
 /**
@@ -84,6 +86,7 @@ export const GetFileRelationshipArgsSchema = z.object({
 
 export const GetIpReportArgsSchema = z.object({
   ip: z.string().ip('Must be a valid IP address').describe('IP address to analyze'),
+  break_token_rule: z.boolean().optional().default(false).describe('Set to true to bypass token limits in critical situations. Use sparingly to avoid context overflow.'),
 });
 
 export const GetIpRelationshipArgsSchema = z.object({
@@ -129,6 +132,7 @@ export const GetDomainReportArgsSchema = z.object({
     .array(z.string())
     .optional()
     .describe('Optional list of relationship types to include in the report'),
+  break_token_rule: z.boolean().optional().default(false).describe('Set to true to bypass token limits in critical situations. Use sparingly to avoid context overflow.'),
 });
 
 export const GetDomainRelationshipArgsSchema = z.object({

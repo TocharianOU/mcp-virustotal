@@ -34,12 +34,10 @@ function createVirusTotalClient(config: VirusTotalConfig) {
     headers['x-apikey'] = config.apiKey;
   } else if (config.authToken) {
     headers['Authorization'] = `Bearer ${config.authToken}`;
-  } else {
-    throw new VirusTotalError(
-      'No credentials configured. Set VIRUSTOTAL_API_KEY for direct access ' +
-        'or VIRUSTOTAL_AUTH_TOKEN for proxy access.'
-    );
   }
+  // No credentials → server still starts and registers tools.
+  // API calls will receive a 401 from VirusTotal / the proxy, which is
+  // surfaced as a tool error rather than crashing the process.
 
   return axios.create({
     baseURL,
@@ -65,11 +63,13 @@ export async function createVirusTotalMcpServer(
     ...(description ? { description } : {}),
   });
 
+  const maxTokenCall = parseInt(process.env.MAX_TOKEN_CALL ?? '20000', 10);
+
   await Promise.all([
-    registerUrlTools(server, client),
-    registerFileTools(server, client),
-    registerIpTools(server, client),
-    registerDomainTools(server, client),
+    registerUrlTools(server, client, maxTokenCall),
+    registerFileTools(server, client, maxTokenCall),
+    registerIpTools(server, client, maxTokenCall),
+    registerDomainTools(server, client, maxTokenCall),
   ]);
 
   return server;
