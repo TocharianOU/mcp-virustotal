@@ -1,7 +1,7 @@
 {
   "name": "@tocharianou/mcp-virustotal",
   "description": "VirusTotal MCP Server – security analysis for URLs, files, IPs and domains",
-  "version": "1.1.1",
+  "version": "1.0.0",
   "mcpName": "io.github.TocharianOU/virustotal",
   "license": "MIT",
   "author": "TocharianOU",
